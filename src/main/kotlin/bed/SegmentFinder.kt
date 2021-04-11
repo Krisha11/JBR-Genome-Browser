@@ -15,7 +15,11 @@ class SegmentFinder(inputList: List<IndexEntry>) {
         }.map {
             (beg, lEnds) -> beg to lEnds.map {
                 it.end to it.index
+            }.sortedBy {
+                it.first
             }
+        }.sortedBy {
+            it.first
         }
     }
 
