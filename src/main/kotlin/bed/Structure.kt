@@ -2,6 +2,8 @@ package bed
 
 import java.nio.file.Path
 
+val WHITESPACE = """(\s)+""".toRegex()
+
 data class BedEntry(val chromosome: String, val start: Int, val end: Int, val other: List<Any>)
 
 /**
@@ -10,20 +12,19 @@ data class BedEntry(val chromosome: String, val start: Int, val end: Int, val ot
 data class IndexEntry(val chromosome: String, val start: Int, val end: Int, val index: Long)
 
 fun String.toBedEntry() : BedEntry? {
-    val l = this.split(" ").filter { x: String -> x.isNotEmpty() }
+    val parts = this.split(WHITESPACE).filter { x: String -> x.isNotEmpty() }
 
     // processing header lines
     if (this[0] == '#'
-        || l[0] == "browser"
-        || l[0] == "track")
+        || parts[0] == "browser"
+        || parts[0] == "track")
             return null
-
-    return BedEntry(l[0], l[1].toInt(), l[2].toInt(), l.subList(3, l.size))
+    return BedEntry(parts[0], parts[1].toInt(), parts[2].toInt(), parts.subList(3, parts.size))
 }
 
 fun String.toIndexEntry() : IndexEntry {
-    val l = this.split(" ").filter { x: String -> x.isNotEmpty() }
-    return IndexEntry(l[0], l[1].toInt(), l[2].toInt(), l[3].toLong())
+    val parts = this.split(WHITESPACE).filter { x: String -> x.isNotEmpty() }
+    return IndexEntry(parts[0], parts[1].toInt(), parts[2].toInt(), parts[3].toLong())
 }
 
 // i is the position of the BedEntry int the BED file.
@@ -60,9 +61,4 @@ interface BedReader {
         index: BedIndex, bedPath: Path,
         chromosome: String, start: Int, end: Int
     ): List<BedEntry>
-}
-
-fun main() {
-
-
 }

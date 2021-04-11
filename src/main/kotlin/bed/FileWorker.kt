@@ -3,30 +3,36 @@ package bed
 import java.nio.file.Path
 import java.io.RandomAccessFile
 
-class FileWorker(private val path : Path, private val mode : String = "rw") {
+class FileWorker(path : Path, mode : String = "rw") {
 
     private val file : RandomAccessFile = RandomAccessFile(path.toFile(), mode)
 
+    // побайтово читаем и добавляем символы в строку
+    private fun readString() : Pair<Int, String> {
+        val cur = StringBuilder()
+        var byte = file.read()
+        while((byte != -1) && (byte.toChar() != '\n')) {
+            cur.append(byte.toChar())
+            byte = file.read()
+        }
+        return byte to cur.toString()
+    }
 
     // этот метод читает файл и выводит его содержимое
     fun read() : List<Pair<String, Long>> {
 
         val res : MutableList<Pair<String, Long>> = mutableListOf<Pair<String, Long>>()
-        var b = 0
+        var byte = 0
 
-        // побайтово читаем символы и плюсуем их в строку
-        while (b != -1) {
-            val cur = StringBuilder()
+        while (byte != -1) {
             val curIndex : Long = file.filePointer
 
-            b = file.read()
-            while((b != -1) && (b.toChar() != '\n')) {
-                cur.append(b.toChar())
-                b = file.read()
-            }
+            // Pair < last byte, string from input >
+            val readRes = readString()
+            byte = readRes.first
 
-            if (cur.toString().isNotEmpty())
-                res.add(cur.toString() to curIndex)
+            if (readRes.second.isNotEmpty())
+                res.add(readRes.second to curIndex)
         }
 
         return res.toList()
@@ -34,30 +40,19 @@ class FileWorker(private val path : Path, private val mode : String = "rw") {
 
     // читаем строку из файла с определенного символа
     fun readLineFrom(numberSymbol : Long) : String {
-        val res = StringBuilder()
-
-        // ставим указатель на нужный вам символ
         file.seek(numberSymbol)
-        var b : Int = file.read()
-
-        // побитово читаем и добавляем символы в строку
-        while(b != -1 && b.toChar() != '\n') {
-            res.append(b.toChar())
-            b = file.read()
-        }
-
-        return res.toString()
+        return readString().second
     }
 
     // запись в файл с начала
-    fun write(l : List<IndexEntry>) {
-        val st = l.map {
+    fun write(list : List<IndexEntry>) {
+        val res = list.map {
                 s : IndexEntry -> s.chromosome + ' ' + s.start.toString() + ' ' + s.end.toString() + ' ' + s.index.toString() + '\n'
         }.fold(StringBuilder()) {
                 total, next -> total.append(next)
         }.toString()
 
-        file.write(st.toByteArray())
+        file.write(res.toByteArray())
     }
 
     fun close() {

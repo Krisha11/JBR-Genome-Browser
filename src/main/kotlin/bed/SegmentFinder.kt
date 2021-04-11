@@ -5,12 +5,12 @@ package bed
  * Performs a quick search by segment [start, end) among them.
  * Returns a list of indexes of entries in Bed file.
  */
-class SegmentFinder(_l: List<IndexEntry>) {
+class SegmentFinder(inputList: List<IndexEntry>) {
     // List < (begin, List<(end, index)>) >
-    private val l: List<Pair<Int, List<Pair<Int, Long>>>>
+    private val segments: List<Pair<Int, List<Pair<Int, Long>>>>
 
     init {
-        l = _l.groupBy {
+        segments = inputList.groupBy {
             it.start
         }.map {
             (beg, lEnds) -> beg to lEnds.map {
@@ -31,12 +31,13 @@ class SegmentFinder(_l: List<IndexEntry>) {
     fun get(start : Int, end: Int) : List<Long> {
         val res : MutableList<Long> = mutableListOf()
 
-        for (i in getIndex(start, l) until getIndex(end + 1, l)) {
-            // [b, e) in l[i].second - have fixed start : l[i].first and lie in [start, end)
-            val b : Int = getIndex(start, l[i].second)
-            val e : Int = getIndex(end + 1, l[i].second)
+        for (i in getIndex(start, segments) until getIndex(end + 1, segments)) {
+            // [b, e) in segments[i].second - have fixed start :
+            // segments[i].first and lie in [start, end)
+            val b : Int = getIndex(start, segments[i].second)
+            val e : Int = getIndex(end + 1, segments[i].second)
             if (b < e)
-                res.addAll(l[i].second.subList(b, e).map{ x -> x.second })
+                res.addAll(segments[i].second.subList(b, e).map{ x -> x.second })
         }
         return res
     }
