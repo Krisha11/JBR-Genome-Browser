@@ -7,7 +7,10 @@ class FileWorker(path : Path, mode : String = "rw") {
 
     private val file : RandomAccessFile = RandomAccessFile(path.toFile(), mode)
 
-    // побайтово читаем и добавляем символы в строку
+    /**
+     * Byte-by-byte read and add characters to the string
+     * Returns pair of last byte and string
+    */
     private fun readString() : Pair<Int, String> {
         val cur = StringBuilder()
         var byte = file.read()
@@ -18,7 +21,10 @@ class FileWorker(path : Path, mode : String = "rw") {
         return byte to cur.toString()
     }
 
-    // этот метод читает файл и выводит его содержимое
+    /**
+     * Reads and returns a list of pairs from the lines of the
+     * source file and the numbers of their first bytes
+     */
     fun read() : List<Pair<String, Long>> {
 
         val res : MutableList<Pair<String, Long>> = mutableListOf<Pair<String, Long>>()
@@ -38,13 +44,17 @@ class FileWorker(path : Path, mode : String = "rw") {
         return res.toList()
     }
 
-    // читаем строку из файла с определенного символа
+    /**
+     * Reads a line from a file from the numberSymbol-th byte
+     */
     fun readLineFrom(numberSymbol : Long) : String {
         file.seek(numberSymbol)
         return readString().second
     }
 
-    // запись в файл с начала
+    /**
+     * Writing index to file
+     */
     fun write(list : List<IndexEntry>) {
         val res = list.map {
                 s : IndexEntry -> s.chromosome + ' ' + s.start.toString() + ' ' + s.end.toString() + ' ' + s.index.toString() + '\n'
